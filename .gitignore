@@ -40,3 +40,7 @@ build/CMakeFiles/titanic.dir/src/main.cpp.o
 build/CMakeFiles/titanic.dir/src/main.cpp.o.d
 build/CMakeFiles/titanic.dir/src/titanic.cpp.o
 build/CMakeFiles/titanic.dir/src/titanic.cpp.o.d
+.vscode/settings.json
+build/output.csv
+build/output.txt
+build/CMakeFiles/titanic.dir/compiler_depend.internal
