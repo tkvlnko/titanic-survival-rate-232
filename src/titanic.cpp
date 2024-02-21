@@ -3,8 +3,15 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <map>
+#include <cstdint>
+#include <iterator>
+#include <numeric>
+
+// #include "ortools/algorithms/knapsack_solver.h"
 
 typedef std::vector<std::vector<std::string>> stringMatrix;
+typedef std::map<std::string, std::map<size_t, double>> obesityGenderMap;
 
 stringMatrix readCsv(const std::string& filePath) {
     stringMatrix matrix;
@@ -60,7 +67,7 @@ void fillNan (stringMatrix& matrix, int columnNum) {
 }
 
 enum CSV_FIELDS {PassengerId, Survived, Pclass, Name, 
-                Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked };
+                Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked, Value};
 
 void fillRate (stringMatrix& matrix) {
     matrix[0].push_back("Rate");
@@ -88,4 +95,103 @@ void writeCsv(const std::string& filePath, const stringMatrix& matrix) {
             outputfile << '\n' ;
         }
 }
+
+struct Passenger{
+    size_t id;
+    std::string name;
+    std::string sex;
+    size_t pclass;
+    double value;
+    size_t age;
+};
+
+bool comp(std::vector<std::string> left, std::vector<std::string> right){
+    return left[CSV_FIELDS::Value] > right[CSV_FIELDS::Value];
+}
+
+
+std::ostream& operator<< (std::ostream& stream, const Passenger& pass){ //без & не выведет
+    stream << pass.id << '\t' << pass.name << '\t' << pass.value << '\n';
+    return stream;
+}
+
+
+void selectSurvivors(stringMatrix matrix, size_t boats, size_t seats)
+{
+    std::sort(matrix.begin(), matrix.end(), comp); //comp = "lambda function"
+    std::vector<std::vector<Passenger>> survived;
+    for (size_t j = 1; j<= boats; j++)
+    {
+        std::vector<Passenger> boat;
+        for (size_t i = 1; i <= seats; i++){
+        Passenger pass {std::stoul(matrix[i][CSV_FIELDS::PassengerId]), matrix[i][CSV_FIELDS::Name], matrix[i][CSV_FIELDS::Sex], 
+                    std::stoul(matrix[i][CSV_FIELDS::Pclass]), std::stod(matrix[i][CSV_FIELDS::Value]), std::stoul(matrix[i][CSV_FIELDS::Age])};
+        // pass.id = matrix[i][CSV_FIELDS::PassengerId];
+        boat.push_back(pass);
+        }
+        survived.push_back(boat);
+    }
+    size_t count = 1;
+    for (const std::vector<Passenger>& boat: survived)
+    {
+        std::cout << "boat " << count++ << '\n';
+        for (const Passenger& elem: boat)
+            std::cout << elem; //вызывает operator<< для типа данных passenger
+        std::cout << "------------\n";
+    }    
+}
+
+struct personObesity{
+    std::string gender;
+    size_t age;
+    double weight;
+};
+
+
+obesityGenderMap getObesity(const std::string& filePath) {
+    obesityGenderMap map{{"Male",{}}, {"Female",{}}};
+    obesityGenderMap counter{{"Male",{}}, {"Female",{}}};
+    std::ifstream inputfile(filePath);
+    if(!inputfile) {
+        std::cout << "cringe";
+        return map;
+    }
+
+    std::string line;
+    while(std::getline(inputfile, line)) {
+        std::stringstream ss (line);
+        std::string field;
+        std::vector <std::string> tokens;
+        size_t counterField = 0;
+        personObesity po;
+        while (std::getline(ss, field, ',') && counterField++ < 4) { // откуда + куда засунуть + по какому знаку делить
+            switch (counterField){
+                case 0:
+                    po.gender = field;
+                    break;
+                case 1:
+                    po.age = std::stoul(field);
+                    break;
+                case 3:
+                    po.weight = std::stod(field); 
+                    break;
+                default:
+                    break;
+            }
+        }
+        // matrix.push_back(tokens); TO BE CONTINUED‼️!!!!!‼️‼️🚼
+    }
+    return map;
+}
+
+
+
+
+
+
+
+void generateWeights(stringMatrix& matrix){
+    
+}
+
 

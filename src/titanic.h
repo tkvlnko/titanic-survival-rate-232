@@ -11,4 +11,4 @@ double defineRate(short age, short pclass, short sex);
 void fillNan (stringMatrix& matrix, int columnNum);
 void fillRate (stringMatrix& matrix);
 void writeCsv(const std::string& filePath, const stringMatrix& matrix);
-
+void selectSurvivors(stringMatrix matrix, size_t boats, size_t seats);
