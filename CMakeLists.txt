@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 # you should change this path according to the location of or-tools folder on your computer
 set(CMAKE_PREFIX_PATH "/Users/nadezhdafomicheva/Documents/or-tools/lib/cmake")  
-find_package(ortools CONFIG REQUIRED)
+# find_package(ortools CONFIG REQUIRED)
 
 add_executable(titanic              src/main.cpp src/titanic.cpp src/titanic.h)
-target_link_libraries(titanic ortools::ortools)
+# target_link_libraries(titanic ortools::ortools)

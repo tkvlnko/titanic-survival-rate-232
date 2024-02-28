@@ -1,17 +1,5 @@
-#include <vector>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <algorithm>
-#include <map>
-#include <cstdint>
-#include <iterator>
-#include <numeric>
-
+#include "titanic.h"
 // #include "ortools/algorithms/knapsack_solver.h"
-
-typedef std::vector<std::vector<std::string>> stringMatrix;
-typedef std::map<std::string, std::map<size_t, double>> obesityGenderMap;
 
 stringMatrix readCsv(const std::string& filePath) {
     stringMatrix matrix;
@@ -66,9 +54,6 @@ void fillNan (stringMatrix& matrix, int columnNum) {
     }
 }
 
-enum CSV_FIELDS {PassengerId, Survived, Pclass, Name, 
-                Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked, Value};
-
 void fillRate (stringMatrix& matrix) {
     matrix[0].push_back("Rate");
     for(size_t i = 1; i < matrix.size(); i++) {
@@ -95,15 +80,6 @@ void writeCsv(const std::string& filePath, const stringMatrix& matrix) {
             outputfile << '\n' ;
         }
 }
-
-struct Passenger{
-    size_t id;
-    std::string name;
-    std::string sex;
-    size_t pclass;
-    double value;
-    size_t age;
-};
 
 bool comp(std::vector<std::string> left, std::vector<std::string> right){
     return left[CSV_FIELDS::Value] > right[CSV_FIELDS::Value];
@@ -141,12 +117,10 @@ void selectSurvivors(stringMatrix matrix, size_t boats, size_t seats)
     }    
 }
 
-struct personObesity{
-    std::string gender;
-    size_t age;
-    double weight;
-};
-
+personObesity personObesity::operator+(const personObesity& x) const {
+    personObesity newTEMP1 {gender, age, weight+x.weight};
+    return newTEMP1;
+}
 
 obesityGenderMap getObesity(const std::string& filePath) {
     obesityGenderMap map{{"Male",{}}, {"Female",{}}};
@@ -158,6 +132,8 @@ obesityGenderMap getObesity(const std::string& filePath) {
     }
 
     std::string line;
+    std::vector<personObesity> vectorWomen;
+    std::vector<personObesity> vectorMen;
     while(std::getline(inputfile, line)) {
         std::stringstream ss (line);
         std::string field;
@@ -165,6 +141,7 @@ obesityGenderMap getObesity(const std::string& filePath) {
         size_t counterField = 0;
         personObesity po;
         while (std::getline(ss, field, ',') && counterField++ < 4) { // откуда + куда засунуть + по какому знаку делить
+            try {
             switch (counterField){
                 case 0:
                     po.gender = field;
@@ -179,8 +156,27 @@ obesityGenderMap getObesity(const std::string& filePath) {
                     break;
             }
         }
+        catch (...){}
+        }
         // matrix.push_back(tokens); TO BE CONTINUED‼️!!!!!‼️‼️🚼
+        if (po.gender == "Female")
+            vectorWomen.push_back(po);
+        else
+            vectorMen.push_back(po);
     }
+    std::map<size_t, double> tempMap;
+    for (size_t i = 0; i < 100; i++) {
+        std::vector<personObesity> temp;
+        std::copy_if (vectorWomen.begin(), vectorWomen.end(), std::back_inserter (temp), [i](const personObesity& x){return x.age == i;});
+        if (temp.size() == 0)
+            tempMap.insert({i, 0});
+        else
+            std::reduce(temp.begin(), temp.end());
+        temp.clear();
+
+    }
+    //std::copy_if
+
     return map;
 }
 
