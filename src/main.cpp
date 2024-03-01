@@ -12,7 +12,10 @@ int main() {
     writeCsv("output.csv", matrix);
     // std::cout << defineRate(0, 1, 1);
     selectSurvivors(matrix, 10, 10);
-    getObesity("../data/obesity.csv");
+    obesityGenderMap map = getObesity("../data/obesity.csv");
+    std:: cout << "DONE getObesity\n";
+    fillWeights(matrix, map);
+    // printMatrix(matrix);
     return 0;
 }
 

@@ -61,15 +61,37 @@ void fillRate (stringMatrix& matrix) {
             double rate = defineRate(std::stoi(matrix[i][CSV_FIELDS::Age]), 
                                             std::stoi(matrix[i][CSV_FIELDS::Pclass]), 
                                             matrix[i][CSV_FIELDS::Sex] == "male" ? 0 : 1);
-                    matrix[i].push_back(std::to_string(rate));
-        } catch(...) {
-            // std::cout << matrix[i][CSV_FIELDS::Sex] << '\t' <<
-            // matrix[i][CSV_FIELDS::Age] << '\t' <<
-            // matrix[i][CSV_FIELDS::Pclass] << '\n' ;
-        }
+                    matrix[i].push_back(std::to_string(int(rate * 100)));
+        } catch(...) {}
         
     }
 }
+
+double randomGenerator(double weight) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distrib(-weight*0.5, weight);
+    return distrib(gen);
+}
+
+void fillWeights(stringMatrix& matrix, const obesityGenderMap& map) {
+    matrix[0].push_back("Weight");
+
+    for(size_t i = 1; i < matrix.size(); i++) {
+        try {
+            size_t age = std::stoi(matrix[i][CSV_FIELDS::Age]);
+            std::string sex = (matrix[i][CSV_FIELDS::Sex] == "male" ? "Male" : "Female");
+
+            const std::map<size_t, double>& ageMap = map.at(sex);
+            double weight = ageMap.lower_bound(age)->second;
+            matrix[i].push_back(std::to_string(int (weight + randomGenerator(weight))));
+                        // std::cout << "age: " << age << '\t' << "weight: " << weight << '\t' << "sex: " << weight << '\n';
+
+        } catch(...) {};
+}
+}
+
+
 
 void writeCsv(const std::string& filePath, const stringMatrix& matrix) {
         std::ofstream outputfile(filePath);
@@ -108,13 +130,13 @@ void selectSurvivors(stringMatrix matrix, size_t boats, size_t seats)
         survived.push_back(boat);
     }
     size_t count = 1;
-    for (const std::vector<Passenger>& boat: survived)
-    {
-        std::cout << "boat " << count++ << '\n';
-        for (const Passenger& elem: boat)
-            std::cout << elem; //вызывает operator<< для типа данных passenger
-        std::cout << "------------\n";
-    }    
+    // for (const std::vector<Passenger>& boat: survived)
+    // {
+    //     std::cout << "boat " << count++ << '\n';
+    //     for (const Passenger& elem: boat)
+    //         std::cout << elem; //вызывает operator<< для типа данных passenger
+    //     std::cout << "------------\n";
+    // }    
 }
 
 personObesity personObesity::operator+(const personObesity& x) const {
@@ -123,8 +145,7 @@ personObesity personObesity::operator+(const personObesity& x) const {
 }
 
 obesityGenderMap getObesity(const std::string& filePath) {
-    obesityGenderMap map{{"Male",{}}, {"Female",{}}};
-    obesityGenderMap counter{{"Male",{}}, {"Female",{}}};
+    obesityGenderMap map;
     std::ifstream inputfile(filePath);
     if(!inputfile) {
         std::cout << "cringe";
@@ -134,13 +155,16 @@ obesityGenderMap getObesity(const std::string& filePath) {
     std::string line;
     std::vector<personObesity> vectorWomen;
     std::vector<personObesity> vectorMen;
+
+    //здесь мы только считали
     while(std::getline(inputfile, line)) {
         std::stringstream ss (line);
         std::string field;
         std::vector <std::string> tokens;
         size_t counterField = 0;
         personObesity po;
-        while (std::getline(ss, field, ',') && counterField++ < 4) { // откуда + куда засунуть + по какому знаку делить
+        while (std::getline(ss, field, ',') && counterField < 4) { // откуда + куда засунуть + по какому знаку делить
+        
             try {
             switch (counterField){
                 case 0:
@@ -148,6 +172,7 @@ obesityGenderMap getObesity(const std::string& filePath) {
                     break;
                 case 1:
                     po.age = std::stoul(field);
+                
                     break;
                 case 3:
                     po.weight = std::stod(field); 
@@ -156,29 +181,60 @@ obesityGenderMap getObesity(const std::string& filePath) {
                     break;
             }
         }
-        catch (...){}
+        catch (...){
         }
-        // matrix.push_back(tokens); TO BE CONTINUED‼️!!!!!‼️‼️🚼
+        counterField++;
+        }
+
         if (po.gender == "Female")
             vectorWomen.push_back(po);
         else
             vectorMen.push_back(po);
     }
-    std::map<size_t, double> tempMap;
+    
+    std::map<size_t, double> tempMapMan;
+    std::map<size_t, double> tempMapWomen;
     for (size_t i = 0; i < 100; i++) {
-        std::vector<personObesity> temp;
-        std::copy_if (vectorWomen.begin(), vectorWomen.end(), std::back_inserter (temp), [i](const personObesity& x){return x.age == i;});
-        if (temp.size() == 0)
-            tempMap.insert({i, 0});
-        else
-            std::reduce(temp.begin(), temp.end());
-        temp.clear();
+        std::vector<personObesity> tempMan;
+        std::vector<personObesity> tempWoman;
+        std::copy_if (vectorWomen.begin(), vectorWomen.end(), std::back_inserter (tempWoman), [i](const personObesity& x){return x.age == i;});
+        std::copy_if (vectorMen.begin(), vectorMen.end(), std::back_inserter (tempMan), [i](const personObesity& x){return x.age == i;});
+        if (tempMan.size() != 0) {
+            // double rnd = (rand() % 6)*pow(-1, rand());
+            personObesity sumOfWeights = std::reduce(tempMan.begin(), tempMan.end());
+            tempMapMan.insert({i, ((sumOfWeights.weight)/tempMan.size())}); // they are fat so we reduce average weight by 20%
+            // std::cout <<i << '\t'<< (sumOfWeights.weight  * 0.8)/tempMan.size() << '\t'<< rnd <<'\n';
+        }
+        if (tempWoman.size() != 0) {
+            // double rnd = (rand() % 5)*pow(-1, rand());
+            personObesity sumOfWeights = std::reduce(tempWoman.begin(), tempWoman.end());
+            tempMapWomen.insert({i, ((sumOfWeights.weight)/tempWoman.size())}); // they are fat so we reduce average weight by 20%
+            std::cout << "age:   " << i << '\t'<< "average weigth:   " << (sumOfWeights.weight  * 0.8)/tempWoman.size() <<'\n';
+        }
 
+        // for (std::pair<int, double> woman: tempMapWomen) {
+        //     if (woman.second == 0) {
+                
+        //     }
+        // }
     }
-    //std::copy_if
 
+    map.insert({"Male", tempMapMan});
+    map.insert({"Female", tempMapWomen});
+
+
+
+    // for (auto x : map){ 
+    //         for (auto y : x.second) {
+    //             // std::cout << y.first << ':' << y.second << std::endl;
+    //             }
+            
+    //         // std::cout << '\n';
+    //         }
     return map;
 }
+
+
 
 
 
