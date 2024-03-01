@@ -15,7 +15,7 @@ int main() {
     obesityGenderMap map = getObesity("../data/obesity.csv");
     std:: cout << "DONE getObesity\n";
     fillWeights(matrix, map);
-    // printMatrix(matrix);
+    printMatrix(matrix);
     return 0;
 }
 
