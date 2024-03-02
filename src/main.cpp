@@ -1,4 +1,4 @@
-#include "titanic.h"
+#include "ortools.h"
 
 const std::string PATH = "../data/titanic.csv";
 
@@ -16,6 +16,8 @@ int main() {
     std:: cout << "DONE getObesity\n";
     fillWeights(matrix, map);
     // printMatrix(matrix);
+
+    operations_research::RunKnapsackExample(matrix);
     return 0;
 }
 

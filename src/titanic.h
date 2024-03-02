@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <random>
 
+
+
 typedef std::vector<std::vector<std::string>> stringMatrix;
 typedef std::unordered_map<std::string, std::map<size_t, double>> obesityGenderMap;
 enum CSV_FIELDS {PassengerId, Survived, Pclass, Name, 
@@ -42,5 +44,6 @@ void selectSurvivors(stringMatrix matrix, size_t boats, size_t seats);
 obesityGenderMap getObesity(const std::string& filePath);
 
 void fillWeights(stringMatrix& matrix, const obesityGenderMap& map);
+std::vector<int64_t> getColumn(int columnNumber, const stringMatrix& matrix);
 
 

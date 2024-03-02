@@ -7,5 +7,5 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_PREFIX_PATH "/Users/apple/Desktop/or-tools/include/ortools/algorithms/knapsack_solver.h")  
 find_package(ortools CONFIG REQUIRED)
 
-add_executable(titanic              src/main.cpp src/titanic.cpp src/titanic.h src/ortools.hpp)
+add_executable(titanic              src/main.cpp src/titanic.cpp src/titanic.h src/ortools.h)
 target_link_libraries(titanic ortools::ortools)

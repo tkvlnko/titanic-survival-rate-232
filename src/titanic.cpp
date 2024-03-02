@@ -31,6 +31,24 @@ void printMatrix(stringMatrix matrix) {
     }
 }
 
+// возвращает нужную колонку из матрицы (для ортулс)
+std::vector<int64_t> getColumn(int columnNumber, const stringMatrix& matrix) {
+    std::vector<int64_t> vec;
+    for (size_t i = 0; i < matrix.size(); i++) {
+        int64_t newValue;
+        std::string value = matrix[i][columnNumber];
+        try {
+            if (columnNumber == CSV_FIELDS::Value) {
+            newValue = std::round(std::stod(value) * 100);
+            } else {
+            newValue = std::round(std::stod(value));
+            }
+            vec.push_back(newValue);
+        } catch(...) {};
+    }
+    return vec;
+}
+
 double WEIGHTS[] {0.5, 0.25, 0.25};
 double defineRate(short age, short pclass, short sex) {
     return (1.0/(age + 1)) * WEIGHTS[0] + (1.0/pclass) *  WEIGHTS[1] + ((1 + sex)/2.0) * WEIGHTS[2];
@@ -61,19 +79,20 @@ void fillRate (stringMatrix& matrix) {
             double rate = defineRate(std::stoi(matrix[i][CSV_FIELDS::Age]), 
                                             std::stoi(matrix[i][CSV_FIELDS::Pclass]), 
                                             matrix[i][CSV_FIELDS::Sex] == "male" ? 0 : 1);
-                    matrix[i].push_back(std::to_string(int(rate * 100)));
+                    matrix[i].push_back(std::to_string(rate));
         } catch(...) {}
         
     }
 }
 
 double randomGenerator(double weight) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> distrib(-weight*0.5, weight);
-    return distrib(gen);
+    std::random_device rd;      //говорим что будем использовать рандомазер
+    std::mt19937 gen(rd());     //правило по которому работает рандомайзер, rd - запускает его
+    std::uniform_real_distribution<double> distrib(-weight*0.5, weight);    //нормальное распределение - то как должен выглядеть отрезок сгенерированных нами чисел
+    return weight + distrib(gen);       //выбираем число из отрезка по правилу, возвращаем вес + рандомное отклонение (может быть < 0)
 }
 
+// заполняем вес каждого человека
 void fillWeights(stringMatrix& matrix, const obesityGenderMap& map) {
     matrix[0].push_back("Weight");
 
@@ -83,11 +102,19 @@ void fillWeights(stringMatrix& matrix, const obesityGenderMap& map) {
             std::string sex = (matrix[i][CSV_FIELDS::Sex] == "male" ? "Male" : "Female");
 
             const std::map<size_t, double>& ageMap = map.at(sex);
-            double weight = ageMap.lower_bound(age)->second;
-            matrix[i].push_back(std::to_string(int (weight + randomGenerator(weight))));
-                        // std::cout << "age: " << age << '\t' << "weight: " << weight << '\t' << "sex: " << weight << '\n';
+            double weight;
+            if (ageMap.lower_bound(age) != ageMap.end()) {
+                weight = (ageMap.lower_bound(age))->second; // если не найдет то вернет 0 
+            } else {
+                std::cout << "cringe ";
+                weight = (--ageMap.upper_bound(age))->second; // если не найдет то вернет последний реальный элемент , 
+                                                              //-- потому что апер баунд возвращает ссылку на то что после end
+            }
+            matrix[i].push_back(std::to_string(randomGenerator(weight)));
+            // std::cout << "age: " << age << '\t' << "weight: " << weight << '\t' << "sex: " << weight << '\n';
 
         } catch(...) {};
+
 }
 }
 
